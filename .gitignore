@@ -50,3 +50,6 @@ Makefile
 
 # Some cmd for internal-usage only
 kb.cmd
+ef.cmd
+qac.cmd
+
