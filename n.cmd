@@ -87,18 +87,28 @@
 	@GOTO :eof
 )
 
-@if /i [%1] == [f] (
+@if /i [%1] == [cf] (
 	@call :npm_format
+	@GOTO :eof
+)
+
+@if /i [%1] == [check] (
+	@call :npm_format
+	@GOTO :eof
+)
+
+@if /i [%1] == [f] (
+	@call :npm_format_fix
 	@GOTO :eof
 )
 
 @if /i [%1] == [fmt] (
-	@call :npm_format
+	@call :npm_format_fix
 	@GOTO :eof
 )
 
 @if /i [%1] == [format] (
-	@call :npm_format
+	@call :npm_format_fix
 	@GOTO :eof
 )
 
@@ -320,7 +330,11 @@ GOTO :eof
 
 
 :npm_format
-@call npx prettier -l --write **/*.{ts,tsx,js,jsx,json}
+@call eslint . --ext .js,.json,.ts -c %APPDATA%\npm\.eslintrc.js
+@goto :eof
+
+:npm_format_fix
+@call eslint . --fix --ext .js,.json,.ts -c %APPDATA%\npm\.eslintrc.js
 @goto :eof
 
 :npm_coverage
@@ -340,3 +354,4 @@ GOTO :eof
 @echo NodeJS is not set.
 @echo n ? for more info
 @GOTO :eof
+\
