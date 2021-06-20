@@ -88,28 +88,23 @@
 )
 
 @if /i [%1] == [cf] (
-	@call :npm_format
-	@GOTO :eof
+	@goto :npm_format
 )
 
 @if /i [%1] == [check] (
-	@call :npm_format
-	@GOTO :eof
+	@goto :npm_format
 )
 
 @if /i [%1] == [f] (
-	@call :npm_format_fix
-	@GOTO :eof
+	@goto :npm_format_fix
 )
 
 @if /i [%1] == [fmt] (
-	@call :npm_format_fix
-	@GOTO :eof
+	@goto :npm_format_fix
 )
 
 @if /i [%1] == [format] (
-	@call :npm_format_fix
-	@GOTO :eof
+	@goto :npm_format_fix
 )
 
 @if /i [%1] == [r] (
@@ -330,7 +325,12 @@ GOTO :eof
 
 
 :npm_format
-@call eslint . --ext .js,.json,.ts -c %APPDATA%\npm\.eslintrc.js
+@if [%2] == [] (
+	@call eslint . --ext .js,.json,.ts -c %APPDATA%\npm\.eslintrc.js
+)
+@if NOT [%2] == [] (
+	@call eslint --ext .js,.json,.ts -c %APPDATA%\npm\.eslintrc.js %2 %3 %4 %5 %6 %7 %8 %9
+)
 @goto :eof
 
 :npm_format_fix
