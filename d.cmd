@@ -10,6 +10,7 @@
 
 @IF /I [%1] == [-p] (
 	@SET _ddcmd=SHOWDEF
+	@SET _ddpath=
 	@shift
 )
 
@@ -155,12 +156,18 @@
 				@SET _ddres=FOUND
 			)
 			@IF [%_ddcmd%] == [SHOWDEF] (
-				@echo %%H
+				@SET _ddpath=%%H
 				@SET _ddres=FOUND
 				@SET _exitcode=99
 			)
 		)
 	)) 2> NUL
+)
+
+@IF [%_ddcmd%] == [SHOWDEF] (
+	@IF [%_ddres%] == [FOUND] (
+		@echo %_ddpath%
+	)
 )
 
 @IF [%_ddres%] == [EMPTY] (
