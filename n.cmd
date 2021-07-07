@@ -127,6 +127,7 @@
 
 @IF /i [%1] == [i] (
 	@IF NOT [%2] == [] GOTO NODEPACKAGEINSTALL
+	@rd node_modules /s/q > NUL 2>&1
 	@call npm install 
 	GOTO :eof
 )
@@ -229,7 +230,7 @@
 	GOTO :eof
 )
 
-@IF /i [%1] == [cf] (
+@IF /i [%1] == [ccf] (
 	@call npm cache clean --force
 	GOTO :eof
 )
