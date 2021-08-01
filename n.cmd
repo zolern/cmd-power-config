@@ -38,6 +38,14 @@
 	GOTO :eof
 )
 
+@if /i [%1] == [vs] (
+	goto :setnodever
+)
+
+@if /i [%1] == [vg] (
+	goto :getnodever
+)
+
 @if /i [%1] == [vd] (
 	echo:
 	echo  Node Version Manager for Windows
@@ -47,14 +55,11 @@
 )
 
 @IF /i [%1] == [v] (
-	if /i [%2] == [] (
-		CALL :showver %2
+	if [%2] == [] (
+		CALL :showver
 		GOTO :eof
 	)
-	echo:
-	echo  Node Version Manager for Windows
-	@nvm use %2
-	goto :eof
+	goto :changenodever
 )
 
 @IF /i [%1] == [s] (
@@ -239,12 +244,12 @@
 	GOTO setnodeenv
 )
 
-
 :errorpar
 @IF [%1] == [] (
 	CALL :showver
 	GOTO :eof
 )
+
 @echo:
 @echo Unknown parameter ^<%1^>
 @GOTO showusage
@@ -350,9 +355,51 @@ GOTO :eof
 @echo:
 @GOTO :eof
 
-
 :NODENOTSET 
 @echo NodeJS is not set.
 @echo n ? for more info
 @GOTO :eof
-\
+
+:changenodever
+@echo:
+@echo  Node Version Manager for Windows
+@IF NOT exist "%APPDATA%\nvm_sets\node_%2.set" goto :normalnvmset
+@set _lver=
+@Set /P _lver=<"%APPDATA%\nvm_sets\node_%2.set"
+@IF "%_lver%" == "" goto :normalnvmset
+@echo     use %2 as %_lver%
+@nvm use %_lver%
+@set _lver=
+@goto :eof
+
+:normalnvmset
+@nvm use %2
+@if [%3] == [] goto :eof
+
+:setnodever
+@IF NOT exist "%APPDATA%\nvm_sets" (
+	mkdir "%APPDATA%\nvm_sets" > NUL 2> NUL
+)
+@if [%3] == [] goto :delnodever
+@echo     set shortcut for %2 as %3
+@echo %2 > "%APPDATA%\nvm_sets\node_%3.set"
+@goto :eof
+
+:getnodever
+@echo:
+@echo  Node Version Manager for Windows
+@IF NOT exist "%APPDATA%\nvm_sets\node_%2.set" goto :nodevernotset
+@set _lver=
+@Set /P _lver=<"%APPDATA%\nvm_sets\node_%2.set"
+@IF "%_lver%" == "" goto :nodevernotset
+@echo     shortcut %2 is for %_lver%
+@set _lver=
+@goto :eof
+
+:nodevernotset
+@echo     shortcut %2 is not defined
+@goto :eof
+
+:delnodever
+@echo     Please provide shortcut for %2
+@goto :eof
