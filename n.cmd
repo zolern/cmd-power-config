@@ -6,6 +6,13 @@
 @IF [%1] == [^/^?] GOTO showhelp
 
 
+@IF /i [%1] == [v] (
+	@IF [%2] == [^?] GOTO shownodeverhelp
+	@IF [%2] == [^\^?] GOTO shownodeverhelp
+	@IF [%2] == [^-^?] GOTO shownodeverhelp
+	@IF [%2] == [^/^?] GOTO shownodeverhelp
+)
+
 @IF /i [%1] == [vl] (
 	echo:
 	echo  Node Version Manager for Windows
@@ -133,14 +140,14 @@
 @IF /i [%1] == [i] (
 	@IF NOT [%2] == [] GOTO NODEPACKAGEINSTALL
 	@rd node_modules /s/q > NUL 2>&1
-	@call npm install 
+	@call npm install
 	GOTO :eof
 )
 
 @IF /i [%1] == [ri] (
 	@rd node_modules /s/q > NUL 2>&1
 	@del package-lock.json > NUL 2>&1
-	@call npm install 
+	@call npm install
 	GOTO :eof
 )
 
@@ -262,6 +269,7 @@
 @echo   Usage:
 @echo:
 @echo   n v		shows current nodeJS^/npm version
+@echo   n v ?  see other version management options
 @echo:
 @echo   n l   	lists all nodeJS modules in current directory
 @echo   n p ^<pkg^>	show package version: recent vs local installed
@@ -276,7 +284,7 @@
 @echo   n u ^<pkg^>	remove package
 @echo   n d ^<pkg^>	remove package
 @echo:
-@echo   n lg  	lists all global nodeJS modules 
+@echo   n lg  	lists all global nodeJS modules
 @echo   n ig ^<pkg^>	install global package
 @echo   n ag ^<pkg^>	install global package
 @echo   n ug ^<pkg^>	remove global package
@@ -347,7 +355,7 @@ GOTO :eof
 @call npx nyc npx mocha
 @goto :eof
 
-:showver 
+:showver
 @node -v
 @echo:
 @echo    npm version:
@@ -355,7 +363,7 @@ GOTO :eof
 @echo:
 @GOTO :eof
 
-:NODENOTSET 
+:NODENOTSET
 @echo NodeJS is not set.
 @echo n ? for more info
 @GOTO :eof
@@ -377,6 +385,14 @@ GOTO :eof
 @if [%3] == [] goto :eof
 
 :setnodever
+@IF [%2] == [] (
+	@echo:
+	@echo   Shortcut is not set
+	@echo:
+	@echo   To define shortcut use:
+	@echo      n vs ^<version^> ^<shortcut^>
+	@goto :eof
+)
 @IF NOT exist "%APPDATA%\nvm_sets" (
 	mkdir "%APPDATA%\nvm_sets" > NUL 2> NUL
 )
@@ -388,6 +404,22 @@ GOTO :eof
 :getnodever
 @echo:
 @echo  Node Version Manager for Windows
+@if [%2] == [] (
+	@echo:
+	@echo   Shortcut is not set
+	@echo:
+	@echo   To check shortcut definition use:
+	@echo      n vg ^<shortcut^>
+	@goto :eof
+)
+@if [%2] == [^?] (
+	@echo:
+	@echo   All shortcuts in ^"%APPDATA%\nvm_sets^":
+	@echo:
+	@dir "%APPDATA%\nvm_sets" /b
+	@echo:
+	@goto :eof
+)
 @IF NOT exist "%APPDATA%\nvm_sets\node_%2.set" goto :nodevernotset
 @set _lver=
 @Set /P _lver=<"%APPDATA%\nvm_sets\node_%2.set"
@@ -403,3 +435,19 @@ GOTO :eof
 :delnodever
 @echo     Please provide shortcut for %2
 @goto :eof
+
+:shownodeverhelp
+@echo:
+@echo  Node Version Manager for Windows
+@echo:
+@echo   n va	shows all node versions
+@echo   n vl	shows installed node versions
+@echo:
+@echo   n vi ^<version^>		install new node version
+@echo   n vd ^<version^>		uninstall node version
+@echo   n v  ^<version^> 		change current node version
+@echo   n v  ^<shortcut^>		change current node with shortcut
+@echo:
+@echo   n vs ^<version^> ^<shortcut^>	define shortcut for version
+@echo   n vg ^<shortcut^>		show current shortcut definition
+@echo:
