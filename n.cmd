@@ -138,7 +138,7 @@
 )
 
 @IF /i [%1] == [i] (
-	@IF NOT [%2] == [] GOTO NODEPACKAGEINSTALL
+	@IF NOT [%2] == [] GOTO pinstall
 	@rd node_modules /s/q > NUL 2>&1
 	@call npm install
 	GOTO :eof
@@ -158,7 +158,7 @@
 )
 
 @IF /i [%1] == [id] (
-	@IF NOT [%2] == [] GOTO NODEPACKAGEINSTALLDEV
+	@IF NOT [%2] == [] GOTO pinstalldev
 	GOTO :eof
 )
 
@@ -168,7 +168,7 @@
 )
 
 @IF /i [%1] == [a] (
-	GOTO NODEPACKAGEINSTALL
+	GOTO pinstall
 )
 
 @IF /i [%1] == [u] (
@@ -197,6 +197,38 @@
 	@IF /i [%2] == [] GOTO showusage
 	@call npm install -g %2 %3 %4 %5 %6 %7 %8 %9
 	GOTO :eof
+)
+
+@IF /i [%1] == [in] (
+	@goto installnpm
+)
+
+@IF /i [%1] == [ni] (
+	@goto installnpm
+)
+
+@IF /i [%1] == [ing] (
+	@goto installnpm
+)
+
+@IF /i [%1] == [ign] (
+	@goto installnpm
+)
+
+@IF /i [%1] == [gin] (
+	@goto installnpm
+)
+
+@IF /i [%1] == [gni] (
+	@goto installnpm
+)
+
+@IF /i [%1] == [gn] (
+	@goto installnpm
+)
+
+@IF /i [%1] == [ng] (
+	@goto installnpm
 )
 
 @IF /i [%1] == [ag] (
@@ -238,7 +270,12 @@
 )
 
 @IF /i [%1] == [cc] (
-	@call npm cache verify
+	if [%2] == [] (
+		call npm cache verify
+	)
+	if /i [%2] == [f] (
+		@call npm cache clean --force
+	)
 	GOTO :eof
 )
 
@@ -305,13 +342,13 @@
 @echo   n ^?		show this info
 @GOTO :eof
 
-:NODEPACKAGEINSTALL
+:pinstall
 @call npm install %2 %3 %4 %5 %6 %7 %8 %9
-GOTO :eof
+@goto :eof
 
-:NODEPACKAGEINSTALLDEV
+:pinstalldev
 @call npm install --save-dev %2 %3 %4 %5 %6 %7 %8 %9
-GOTO :eof
+@goto :eof
 
 :setnodeenv
 @IF /i [%2] == [dev] GOTO devsetnodeenv
@@ -451,3 +488,27 @@ GOTO :eof
 @echo   n vs ^<version^> ^<shortcut^>	define shortcut for version
 @echo   n vg ^<shortcut^>		show current shortcut definition
 @echo:
+@goto :eof
+
+:installnpm
+@echo:
+@rd "%tmp%\npm" /s/q > NUL 2> NUL
+@if [%2] == [] (
+	@echo NodeJS companion: install latest npm
+	@echo:
+	@call npm install --prefix "%tmp%\npm" -g npm
+)
+@if NOT [%2] == [] (
+	@echo NodeJS companion: install %2
+	@echo:
+	@call npm install --prefix "%tmp%\npm" -g %2
+)
+@pushd "%NVM_SYMLINK%"
+@del npm*.* npx*.* > NUL 2> NUL
+@rd node_modules\npm /s/q
+@xcopy "%tmp%\npm\*.*" /s /e /h /q /k /r > NUL
+@rd "%tmp%\npm" /s/q > NUL 2> NUL
+@popd
+@echo:
+@call npm -v
+@goto :eof
