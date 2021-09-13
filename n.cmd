@@ -7,10 +7,10 @@
 
 
 @IF /i [%1] == [v] (
-	@IF [%2] == [^?] GOTO shownodeverhelp
-	@IF [%2] == [^\^?] GOTO shownodeverhelp
-	@IF [%2] == [^-^?] GOTO shownodeverhelp
-	@IF [%2] == [^/^?] GOTO shownodeverhelp
+	@IF [%2] == [^?] GOTO shownverhelp
+	@IF [%2] == [^\^?] GOTO shownverhelp
+	@IF [%2] == [^-^?] GOTO shownverhelp
+	@IF [%2] == [^/^?] GOTO shownverhelp
 )
 
 @IF /i [%1] == [vl] (
@@ -34,6 +34,7 @@
 	echo  Node Version Manager for Windows
 	echo:
 	@nvm install %2
+	if NOT [%3] == [] goto :setnodever
 	GOTO :eof
 )
 
@@ -66,7 +67,7 @@
 		CALL :showver
 		GOTO :eof
 	)
-	goto :changenodever
+	goto :changenver
 )
 
 @IF /i [%1] == [s] (
@@ -89,16 +90,6 @@
 	@GOTO :eof
 )
 
-@if /i [%1] == [c] (
-	@call :npm_coverage
-	@GOTO :eof
-)
-
-@if /i [%1] == [coverage] (
-	@call :npm_coverage
-	@GOTO :eof
-)
-
 @if /i [%1] == [cf] (
 	@goto :npm_format
 )
@@ -108,15 +99,15 @@
 )
 
 @if /i [%1] == [f] (
-	@goto :npm_format_fix
+	@goto :npm_fmt_fix
 )
 
 @if /i [%1] == [fmt] (
-	@goto :npm_format_fix
+	@goto :npm_fmt_fix
 )
 
 @if /i [%1] == [format] (
-	@goto :npm_format_fix
+	@goto :npm_fmt_fix
 )
 
 @if /i [%1] == [r] (
@@ -223,12 +214,12 @@
 	@goto installnpm
 )
 
-@IF /i [%1] == [gn] (
-	@goto installnpm
+@IF /i [%1] == [rn] (
+	@goto restorenpm
 )
 
-@IF /i [%1] == [ng] (
-	@goto installnpm
+@IF /i [%1] == [nr] (
+	@goto restorenpm
 )
 
 @IF /i [%1] == [ag] (
@@ -306,7 +297,7 @@
 @echo   Usage:
 @echo:
 @echo   n v		shows current nodeJS^/npm version
-@echo   n v ?  see other version management options
+@echo   n v ? 	see other version management options
 @echo:
 @echo   n l   	lists all nodeJS modules in current directory
 @echo   n p ^<pkg^>	show package version: recent vs local installed
@@ -326,6 +317,10 @@
 @echo   n ag ^<pkg^>	install global package
 @echo   n ug ^<pkg^>	remove global package
 @echo   n dg ^<pkg^>	remove global package
+@echo:
+@echo   n in ^<npm^>	install global npm
+@echo   n rn ^<ver^>	restore npm from other node version
+@echo   n rn ^<short^>	restore npm from other node by shortcut
 @echo:
 @echo   n cc		clean node modules cache
 @echo:
@@ -351,10 +346,10 @@
 @goto :eof
 
 :setnodeenv
-@IF /i [%2] == [dev] GOTO devsetnodeenv
-@IF /i [%2] == [d] GOTO devsetnodeenv
-@IF /i [%2] == [prod] GOTO prodsetnodeenv
-@IF /i [%2] == [p] GOTO prodsetnodeenv
+@IF /i [%2] == [dev] GOTO devsetnenv
+@IF /i [%2] == [d] GOTO devsetnenv
+@IF /i [%2] == [prod] GOTO prodsetnenv
+@IF /i [%2] == [p] GOTO prodsetnenv
 @IF /i [%2] == [-] GOTO clearnodeenv
 @echo Node env: %NODE_ENV%
 @GOTO :eof
@@ -363,12 +358,12 @@
 @setx NODE_ENV "" > NUL
 @echo Node env is cleared
 @GOTO :eof
-:devsetnodeenv
+:devsetnenv
 @set NODE_ENV=development
 @setx NODE_ENV development > NUL
 @echo Node env set to development
 @GOTO :eof
-:prodsetnodeenv
+:prodsetnenv
 @set NODE_ENV=production
 @setx NODE_ENV production > NUL
 @echo Node env set to production
@@ -384,12 +379,8 @@
 )
 @goto :eof
 
-:npm_format_fix
+:npm_fmt_fix
 @call eslint . --fix --ext .js,.json,.ts -c %APPDATA%\npm\.eslintrc.js
-@goto :eof
-
-:npm_coverage
-@call npx nyc npx mocha
 @goto :eof
 
 :showver
@@ -405,7 +396,7 @@
 @echo n ? for more info
 @GOTO :eof
 
-:changenodever
+:changenver
 @echo:
 @echo  Node Version Manager for Windows
 @IF NOT exist "%APPDATA%\nvm_sets\node_%2.set" goto :normalnvmset
@@ -457,15 +448,15 @@
 	@echo:
 	@goto :eof
 )
-@IF NOT exist "%APPDATA%\nvm_sets\node_%2.set" goto :nodevernotset
+@IF NOT exist "%APPDATA%\nvm_sets\node_%2.set" goto :nvernotset
 @set _lver=
 @Set /P _lver=<"%APPDATA%\nvm_sets\node_%2.set"
-@IF "%_lver%" == "" goto :nodevernotset
+@IF "%_lver%" == "" goto :nvernotset
 @echo     shortcut %2 is for %_lver%
 @set _lver=
 @goto :eof
 
-:nodevernotset
+:nvernotset
 @echo     shortcut %2 is not defined
 @goto :eof
 
@@ -473,20 +464,21 @@
 @echo     Please provide shortcut for %2
 @goto :eof
 
-:shownodeverhelp
+:shownverhelp
 @echo:
 @echo  Node Version Manager for Windows
 @echo:
 @echo   n va	shows all node versions
 @echo   n vl	shows installed node versions
 @echo:
-@echo   n vi ^<version^>		install new node version
-@echo   n vd ^<version^>		uninstall node version
-@echo   n v  ^<version^> 		change current node version
-@echo   n v  ^<shortcut^>		change current node with shortcut
+@echo   n vi ^<ver^>   		install new node version
+@echo   n vi ^<ver^> ^<short^>	install new node version and set shortcut
+@echo   n vd ^<ver^>   		uninstall node version
+@echo   n v  ^<ver^>   		change current node version
+@echo   n v  ^<short^> 		change current node with shortcut
 @echo:
-@echo   n vs ^<version^> ^<shortcut^>	define shortcut for version
-@echo   n vg ^<shortcut^>		show current shortcut definition
+@echo   n vs ^<ver^> ^<short^>	define shortcut for version
+@echo   n vg ^<short^> 		show current shortcut definition
 @echo:
 @goto :eof
 
@@ -505,10 +497,41 @@
 )
 @pushd "%NVM_SYMLINK%"
 @del npm*.* npx*.* > NUL 2> NUL
-@rd node_modules\npm /s/q
-@xcopy "%tmp%\npm\*.*" /s /e /h /q /k /r > NUL
+@rd node_modules\npm /s/q > NUL 2> NUL
+@xcopy "%tmp%\npm\*.*" /s /e /h /q /k /r /y > NUL
 @rd "%tmp%\npm" /s/q > NUL 2> NUL
 @popd
 @echo:
+@echo Now using newly installed npm, version:
+@call npm -v
+@goto :eof
+
+:restorenpm
+@echo:
+@pushd "%NVM_SYMLINK%"
+@del npm*.* npx*.* > NUL 2> NUL
+@rd node_modules\npm /s/q > NUL 2> NUL
+@set _lver=%2
+@IF NOT exist "%APPDATA%\nvm_sets\node_%2.set" goto restorenext
+@set _lver=
+@Set /P _lver=<"%APPDATA%\nvm_sets\node_%2.set"
+@IF "%_lver%" == "" set _lver=%2
+
+:restorenext
+@for /l %%a in (1,1,5) do @if "%_lver:~-1%"==" " @set _lver=%_lver:~0,-1%
+@echo NodeJS companion: restore npm from node v.%_lver%
+@echo:
+@IF NOT exist "%APPDATA%\nvm\v%_lver%" (
+	echo   Could not found installed node %_lver%
+	goto :eof
+)
+@copy "%APPDATA%\nvm\v%_lver%\npm*.*" > NUL 2> NUL
+@copy "%APPDATA%\nvm\v%_lver%\npx*.*" > NUL 2> NUL
+@md node_modules > NUL 2> NUL
+@md node_modules\npm > NUL 2> NUL
+@xcopy "%APPDATA%\nvm\v%_lver%\node_modules\npm" node_modules\npm /s /e /h /q /k /r /y > NUL
+@set _lver=
+@popd
+@echo Now using restored npm, version:
 @call npm -v
 @goto :eof
