@@ -18,12 +18,12 @@
 )
 
 @IF /i [%1] == [g] (
-	@npm-check -g --skip-unused
+	@npm-check -gu --skip-unused
 	GOTO :eof
 )
 
 @IF /i [%1] == [-g] (
-	@npm-check -g --skip-unused
+	@npm-check -gu --skip-unused
 	GOTO :eof
 )
 
