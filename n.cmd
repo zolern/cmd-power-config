@@ -137,9 +137,38 @@
 
 @IF /i [%1] == [ri] (
 	@rd node_modules /s/q > NUL 2>&1
-	@del package-lock.json > NUL 2>&1
-	@call npm install
+	@call npm install %2
 	GOTO :eof
+)
+
+@IF /i [%1] == [ir] (
+	@rd node_modules /s/q > NUL 2>&1
+	@call npm install %2
+	GOTO :eof
+)
+
+@IF /i [%1] == [rpi] (
+	goto :fullreinstall
+)
+
+@IF /i [%1] == [rip] (
+	goto :fullreinstall
+)
+
+@IF /i [%1] == [ipr] (
+	goto :fullreinstall
+)
+
+@IF /i [%1] == [irp] (
+	goto :fullreinstall
+)
+
+@IF /i [%1] == [pir] (
+	goto :fullreinstall
+)
+
+@IF /i [%1] == [pri] (
+	goto :fullreinstall
 )
 
 @IF /i [%1] == [rd] (
@@ -304,6 +333,7 @@
 @echo:
 @echo   n i 		install all packages
 @echo   n ri 		install all packages (with deleting node_modules)
+@echo   n rpi		install all packages (with deleting node_modules and package-lock)
 @echo   n ip 		install all packages in production
 @echo:
 @echo   n i ^<pkg^>	install package
@@ -320,7 +350,7 @@
 @echo:
 @echo   n in ^<npm^>	install global npm
 @echo   n rn ^<ver^>	restore npm from other node version
-@echo   n rn ^<short^>	restore npm from other node by shortcut
+@echo   n rn ^<alias^>	restore npm from other node by alias
 @echo:
 @echo   n cc		clean node modules cache
 @echo:
@@ -399,9 +429,9 @@
 :changenver
 @echo:
 @echo  Node Version Manager for Windows
-@IF NOT exist "%APPDATA%\nvm_sets\node_%2.set" goto :normalnvmset
+@IF NOT exist "%APPDATA%\nvm_aliases\node_%2.set" goto :normalnvmset
 @set _lver=
-@Set /P _lver=<"%APPDATA%\nvm_sets\node_%2.set"
+@Set /P _lver=<"%APPDATA%\nvm_aliases\node_%2.set"
 @IF "%_lver%" == "" goto :normalnvmset
 @echo     use %2 as %_lver%
 @nvm use %_lver%
@@ -415,18 +445,18 @@
 :setnodever
 @IF [%2] == [] (
 	@echo:
-	@echo   Shortcut is not set
+	@echo   Alias is not set
 	@echo:
-	@echo   To define shortcut use:
-	@echo      n vs ^<version^> ^<shortcut^>
+	@echo   To define alias use:
+	@echo      n vs ^<version^> ^<alias^>
 	@goto :eof
 )
-@IF NOT exist "%APPDATA%\nvm_sets" (
-	mkdir "%APPDATA%\nvm_sets" > NUL 2> NUL
+@IF NOT exist "%APPDATA%\nvm_aliases" (
+	mkdir "%APPDATA%\nvm_aliases" > NUL 2> NUL
 )
 @if [%3] == [] goto :delnodever
-@echo     set shortcut for %2 as %3
-@echo %2 > "%APPDATA%\nvm_sets\node_%3.set"
+@echo     set alias for %2 as %3
+@echo %2 > "%APPDATA%\nvm_aliases\node_%3.set"
 @goto :eof
 
 :getnodever
@@ -434,34 +464,34 @@
 @echo  Node Version Manager for Windows
 @if [%2] == [] (
 	@echo:
-	@echo   Shortcut is not set
+	@echo   Alias is not set
 	@echo:
-	@echo   To check shortcut definition use:
-	@echo      n vg ^<shortcut^>
+	@echo   To check alias definition use:
+	@echo      n vg ^<alias^>
 	@goto :eof
 )
 @if [%2] == [^?] (
 	@echo:
-	@echo   All shortcuts in ^"%APPDATA%\nvm_sets^":
+	@echo   All aliases in ^"%APPDATA%\nvm_aliases^":
 	@echo:
-	@dir "%APPDATA%\nvm_sets" /b
+	@dir "%APPDATA%\nvm_aliases" /b
 	@echo:
 	@goto :eof
 )
-@IF NOT exist "%APPDATA%\nvm_sets\node_%2.set" goto :nvernotset
+@IF NOT exist "%APPDATA%\nvm_aliases\node_%2.set" goto :nvernotset
 @set _lver=
-@Set /P _lver=<"%APPDATA%\nvm_sets\node_%2.set"
+@Set /P _lver=<"%APPDATA%\nvm_aliases\node_%2.set"
 @IF "%_lver%" == "" goto :nvernotset
-@echo     shortcut %2 is for %_lver%
+@echo     alias %2 is for %_lver%
 @set _lver=
 @goto :eof
 
 :nvernotset
-@echo     shortcut %2 is not defined
+@echo     alias %2 is not defined
 @goto :eof
 
 :delnodever
-@echo     Please provide shortcut for %2
+@echo     Please provide alias for %2
 @goto :eof
 
 :shownverhelp
@@ -472,13 +502,13 @@
 @echo   n vl	shows installed node versions
 @echo:
 @echo   n vi ^<ver^>   		install new node version
-@echo   n vi ^<ver^> ^<short^>	install new node version and set shortcut
+@echo   n vi ^<ver^> ^<alias^>	install new node version and set alias
 @echo   n vd ^<ver^>   		uninstall node version
 @echo   n v  ^<ver^>   		change current node version
-@echo   n v  ^<short^> 		change current node with shortcut
+@echo   n v  ^<alias^> 		change current node with alias
 @echo:
-@echo   n vs ^<ver^> ^<short^>	define shortcut for version
-@echo   n vg ^<short^> 		show current shortcut definition
+@echo   n vs ^<ver^> ^<alias^>	define alias for version
+@echo   n vg ^<alias^> 		show alias definition
 @echo:
 @goto :eof
 
@@ -512,9 +542,9 @@
 @del npm*.* npx*.* > NUL 2> NUL
 @rd node_modules\npm /s/q > NUL 2> NUL
 @set _lver=%2
-@IF NOT exist "%APPDATA%\nvm_sets\node_%2.set" goto restorenext
+@IF NOT exist "%APPDATA%\nvm_aliases\node_%2.set" goto restorenext
 @set _lver=
-@Set /P _lver=<"%APPDATA%\nvm_sets\node_%2.set"
+@Set /P _lver=<"%APPDATA%\nvm_aliases\node_%2.set"
 @IF "%_lver%" == "" set _lver=%2
 
 :restorenext
@@ -535,3 +565,9 @@
 @echo Now using restored npm, version:
 @call npm -v
 @goto :eof
+
+:fullreinstall
+@rd node_modules /s/q > NUL 2>&1
+@del package-lock.json > NUL 2>&1
+@call npm install %2
+GOTO :eof
