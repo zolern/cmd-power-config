@@ -434,12 +434,13 @@
 @Set /P _lver=<"%APPDATA%\nvm_aliases\node_%2.set"
 @IF "%_lver%" == "" goto :normalnvmset
 @echo     use %2 as %_lver%
-@nvm use %_lver%
+@powershell.exe -Command "Start-Process nvm \"use %_lver%\" -Verb RunAs"
+@
 @set _lver=
 @goto :eof
 
 :normalnvmset
-@nvm use %2
+@powershell.exe -Command "Start-Process nvm \"use %2\" -Verb RunAs"
 @if [%3] == [] goto :eof
 
 :setnodever

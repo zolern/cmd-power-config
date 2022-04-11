@@ -94,6 +94,12 @@
 		@goto :showuserinfo
 	)
 
+	@if /i [%2] == [l] (
+		@git config --local user.name "Encho Topalov"
+		@git config --local user.email encho.topalov@lseg.com
+		@goto :showuserinfo
+	)
+
 	@if /i [%2] == [gm] (
 		@git config --local user.name "Encho \"zolern\" Topalov"
 		@git config --local user.email entopalov@gmail.com
@@ -103,6 +109,7 @@
 	@echo:
 	@echo g cs e    for EPAM's user settings
 	@echo g cs r    for Refinitiv's user settings
+	@echo g cs l    for LSEG's user settings
 	@echo g cs gm   for private user settings
 	@GOTO :eof
 )
