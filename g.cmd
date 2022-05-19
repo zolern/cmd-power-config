@@ -6,7 +6,6 @@
 @IF [%1] == [^/^?] GOTO showhelp
 
 @IF /i [%1] == [v] (
-	@IF "%NVM_CURRENT%" == "" GOTO NODENOTSET
 	CALL :showinfo
 	GOTO :eof
 )
@@ -77,7 +76,7 @@
 )
 
 @IF /i [%1] == [s] (
-	@call :showinfo
+	@call :showstat
 	@goto :eof
 )
 
@@ -167,8 +166,11 @@
 @GOTO :eof
 
 :showinfo
-@call git --version
+@git --version
 @echo:
+@GOTO :eof
+
+:showstat
 @git status
 @echo: 
 @GOTO :eof
