@@ -202,14 +202,14 @@
 )
 
 @IF /i [%1] == [lg] (
-	@IF [%2] == [] @call npm list -g --depth=0
-	@IF NOT [%2] == [] @call npm list -g --depth=%2
+	@IF [%2] == [] @call npm list --location=global --depth=0
+	@IF NOT [%2] == [] @call npm list --location=global --depth=%2
 	GOTO :eof
 )
 
 @IF /i [%1] == [gl] (
-	@IF [%2] == [] @call npm list -g --depth=0
-	@IF NOT [%2] == [] @call npm list -g --depth=%2
+	@IF [%2] == [] @call npm list --location=global --depth=0
+	@IF NOT [%2] == [] @call npm list --location=global --depth=%2
 	GOTO :eof
 )
 
@@ -376,28 +376,39 @@
 @goto :eof
 
 :setnodeenv
+@set envlabel=
+@IF /i [%2] == [development] GOTO devsetnenv
 @IF /i [%2] == [dev] GOTO devsetnenv
 @IF /i [%2] == [d] GOTO devsetnenv
+@IF /i [%2] == [production] GOTO prodsetnenv
 @IF /i [%2] == [prod] GOTO prodsetnenv
 @IF /i [%2] == [p] GOTO prodsetnenv
 @IF /i [%2] == [-] GOTO clearnodeenv
 @echo Node env: %NODE_ENV%
 @GOTO :eof
 :clearnodeenv
-@set NODE_ENV=
+@set TEMPENV=
 @setx NODE_ENV "" > NUL
-@echo Node env is cleared
-@GOTO :eof
+@set envlabel=is cleared
+@GOTO :enveof
 :devsetnenv
-@set NODE_ENV=development
+@set TEMPENV=development
 @setx NODE_ENV development > NUL
-@echo Node env set to development
-@GOTO :eof
+@set envlabel=set to development
+@GOTO :enveof
 :prodsetnenv
-@set NODE_ENV=production
+@set TEMPENV=production
 @setx NODE_ENV production > NUL
-@echo Node env set to production
-@GOTO :eof
+@set envlabel=set to production
+@GOTO :enveof
+:enveof
+@if /i [%3] == [-p] (
+	@echo %TEMPENV%
+	@goto :eof
+)
+@echo Node env %envlabel%
+@endlocal & set NODE_ENV=%TEMPENV%
+@exit /b
 
 
 :npm_format
@@ -570,5 +581,7 @@
 :fullreinstall
 @rd node_modules /s/q > NUL 2>&1
 @del package-lock.json > NUL 2>&1
+@del npm-shrinkwrap.json > NUL 2>&1
+@del shrinkwrap.json > NUL 2>&1
 @call npm install %2
 GOTO :eof
