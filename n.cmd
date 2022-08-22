@@ -510,17 +510,17 @@
 @echo:
 @echo  Node Version Manager for Windows
 @echo:
-@echo   n va	shows all node versions
-@echo   n vl	shows installed node versions
+@echo   n va ^/ nv a	shows all node versions
+@echo   n vl ^/ nv l	shows installed node versions
 @echo:
-@echo   n vi ^<ver^>   		install new node version
-@echo   n vi ^<ver^> ^<alias^>	install new node version and set alias
-@echo   n vd ^<ver^>   		uninstall node version
-@echo   n v  ^<ver^>   		change current node version
-@echo   n v  ^<alias^> 		change current node with alias
+@echo   n vi ^/ nv a ^<ver^>   		install new node version
+@echo   n vi ^/ nv a ^<ver^> ^<alias^>	install new node version and set alias
+@echo   n vd ^/ nv a ^<ver^>   		uninstall node version
+@echo   n v ^/ nv  ^<ver^>   		change current node version
+@echo   n v ^/ nv  ^<alias^> 		change current node with alias
 @echo:
-@echo   n vs ^<ver^> ^<alias^>	define alias for version
-@echo   n vg ^<alias^> 		show alias definition
+@echo   n vs ^/ nv s ^<ver^> ^<alias^>	define alias for version
+@echo   n vg ^/ nv g ^<alias^> 		show alias definition
 @echo:
 @goto :eof
 
