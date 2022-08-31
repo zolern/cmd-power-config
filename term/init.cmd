@@ -26,7 +26,7 @@ if "%ConEmuIsAdmin%" == "ADMIN" (
 )
 
 rem Finally reset color and add notify ConEmu about prompt input start coords
-set ConEmuPrompt3=$E[m$S$E]9;12$E\
+set ConEmuPrompt3=$E[?25h$E[m$S$E]9;12$E\
 
 rem Set new prompt
 PROMPT %ConEmuPrompt1%%ConEmuPrompt2%%ConEmuPrompt3%
