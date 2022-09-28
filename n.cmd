@@ -171,6 +171,30 @@
 	goto :fullreinstall
 )
 
+@if /i [%1] == [ric] (
+	goto :fullclearinstall
+)
+
+@if /i [%1] == [rci] (
+	goto :fullclearinstall
+)
+
+@if /i [%1] == [irc] (
+	goto :fullclearinstall
+)
+
+@if /i [%1] == [icr] (
+	goto :fullclearinstall
+)
+
+@if /i [%1] == [cir] (
+	goto :fullclearinstall
+)
+
+@if /i [%1] == [cri] (
+	goto :fullclearinstall
+)
+
 @IF /i [%1] == [rd] (
 	@rd node_modules /s/q > NUL 2>&1
 	@del package-lock.json > NUL 2>&1
@@ -579,6 +603,12 @@
 @goto :eof
 
 :fullreinstall
+@rd node_modules /s/q > NUL 2>&1
+@del package-lock.json > NUL 2>&1
+@call npm install %2
+GOTO :eof
+
+:fullclearinstall
 @rd node_modules /s/q > NUL 2>&1
 @del package-lock.json > NUL 2>&1
 @del npm-shrinkwrap.json > NUL 2>&1
