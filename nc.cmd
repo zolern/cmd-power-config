@@ -8,22 +8,7 @@
 @IF [%1] == [^/^?] GOTO showhelp
 
 @IF [%1] == [] (
-	@npm-check --skip-unused
-	GOTO :eof
-)
-
-@IF [%1] == [c] (
-	@npm-check
-	GOTO :eof
-)
-
-@IF /i [%1] == [g] (
-	@npm-check -gu --skip-unused
-	GOTO :eof
-)
-
-@IF /i [%1] == [-g] (
-	@npm-check -gu --skip-unused
+	@npm-check -u --skip-unused
 	GOTO :eof
 )
 
@@ -37,25 +22,34 @@
 	GOTO :eof
 )
 
-@IF /i [%1] == [ug] (
-	@npm-check -gu --skip-unused 
+@IF [%1] == [c] (
+	@npm-check
 	GOTO :eof
 )
 
+@IF /i [%1] == [g] (
+	GOTO :updglobal
+)
+
+@IF /i [%1] == [-g] (
+	GOTO :updglobal
+)
+
+@IF /i [%1] == [ug] (
+	GOTO :updglobal
+)
+
 @IF /i [%1] == [-ug] (
-	@npm-check -gu --skip-unused 
-	GOTO :eof
+	GOTO :updglobal
 )
 
 
 @IF /i [%1] == [gu] (
-	@npm-check -gu --skip-unused
-	GOTO :eof
+	GOTO :updglobal
 )
 
 @IF /i [%1] == [-gu] (
-	@npm-check -gu --skip-unused
-	GOTO :eof
+	GOTO :updglobal
 )
 
 @echo Unknown parameter ^<%1^>
@@ -76,3 +70,10 @@
 @echo:
 @echo   n ^?   	show this info
 @GOTO :eof
+
+:updglobal
+@pushd .
+@call d dev
+@npm-check -gu --skip-unused
+@popd
+@goto :eof
