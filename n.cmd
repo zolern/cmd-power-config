@@ -13,6 +13,36 @@
 	@IF [%2] == [^/^?] GOTO shownverhelp
 )
 
+@if /i [%1] == [v^?] goto shownverhelp
+@if /i [%1] == [v^-^?] goto shownverhelp
+@if /i [%1] == [v^/^?] goto shownverhelp
+@if /i [%1] == [v^\^?] goto shownverhelp
+@if /i [%1] == [vh] goto shownverhelp
+@if /i [%1] == [v-h] goto shownverhelp
+@if /i [%1] == [v^/h] goto shownverhelp
+@if /i [%1] == [v^\h] goto shownverhelp
+@if /i [%1] == [v--help] goto shownverhelp
+
+@if /i [%1] == [vn] (
+    call n p npm
+	goto :eof
+)
+
+@if /i [%1] == [vn^?] (
+    call n p npm
+	goto :eof
+)
+
+@if /i [%1] == [vin] (
+	call n in %2
+	goto :eof
+)
+
+@if /i [%1] == [vni] (
+	call n in %2
+	goto :eof
+)
+
 @IF /i [%1] == [vl] (
 	echo:
 	echo  Node Version Manager for Windows
@@ -237,12 +267,6 @@
 	GOTO :eof
 )
 
-@IF /i [%1] == [ig] (
-	@IF /i [%2] == [] GOTO showusage
-	@call npm install -g %2 %3 %4 %5 %6 %7 %8 %9
-	GOTO :eof
-)
-
 @IF /i [%1] == [in] (
 	@goto installnpm
 )
@@ -275,34 +299,44 @@
 	@goto restorenpm
 )
 
+@IF /i [%1] == [ig] (
+	@IF /i [%2] == [] GOTO showusage
+	@goto :gblinstall
+)
+
+@IF /i [%1] == [gi] (
+	@IF /i [%2] == [] GOTO showusage
+	@goto :gblinstall
+)
+
 @IF /i [%1] == [ag] (
-	@call npm install -g %2 %3 %4 %5 %6 %7 %8 %9
-	GOTO :eof
+	@IF /i [%2] == [] GOTO showusage
+	@goto :gblinstall
 )
 
 @IF /i [%1] == [ga] (
-	@call npm install -g %2 %3 %4 %5 %6 %7 %8 %9
-	GOTO :eof
+	@IF /i [%2] == [] GOTO showusage
+	@goto :gblinstall
 )
 
 @IF /i [%1] == [ug] (
-	@call npm uninstall -g %2 %3 %4 %5 %6 %7 %8 %9
-	GOTO :eof
+	@IF /i [%2] == [] GOTO showusage
+	@goto :gbluninst
 )
 
 @IF /i [%1] == [gu] (
-	@call npm uninstall -g %2 %3 %4 %5 %6 %7 %8 %9
-	GOTO :eof
+	@IF /i [%2] == [] GOTO showusage
+	@goto :gbluninst
 )
 
 @IF /i [%1] == [dg] (
-	@call npm uninstall -g %2 %3 %4 %5 %6 %7 %8 %9
-	GOTO :eof
+	@IF /i [%2] == [] GOTO showusage
+	@goto :gbluninst
 )
 
 @IF /i [%1] == [gd] (
-	@call npm uninstall -g %2 %3 %4 %5 %6 %7 %8 %9
-	GOTO :eof
+	@IF /i [%2] == [] GOTO showusage
+	@goto :gbluninst
 )
 
 @IF /i [%1] == [ls] (
@@ -537,11 +571,14 @@
 @echo   n va ^/ nv a	shows all node versions
 @echo   n vl ^/ nv l	shows installed node versions
 @echo:
-@echo   n vi ^/ nv a ^<ver^>   		install new node version
-@echo   n vi ^/ nv a ^<ver^> ^<alias^>	install new node version and set alias
-@echo   n vd ^/ nv a ^<ver^>   		uninstall node version
+@echo   n vi ^/ nv i ^<ver^>   		install new node version
+@echo   n vi ^/ nv i ^<ver^> ^<alias^>	install new node version and set alias
+@echo   n vd ^/ nv d ^<ver^>   		uninstall node version
 @echo   n v ^/ nv  ^<ver^>   		change current node version
 @echo   n v ^/ nv  ^<alias^> 		change current node with alias
+@echo:
+@echo          nv n   		check latest npm version
+@echo   n in ^/ nv in  		install latest npm version
 @echo:
 @echo   n vs ^/ nv s ^<ver^> ^<alias^>	define alias for version
 @echo   n vg ^/ nv g ^<alias^> 		show alias definition
@@ -615,3 +652,17 @@ GOTO :eof
 @del shrinkwrap.json > NUL 2>&1
 @call npm install %2
 GOTO :eof
+
+:gblinstall
+@pushd .
+@call d dev
+@call npm install -g %2 %3 %4 %5 %6 %7 %8 %9
+@popd
+@GOTO :eof
+
+:gbluninst
+@pushd .
+@call d dev
+@call npm uninstall -g %2 %3 %4 %5 %6 %7 %8 %9
+@popd
+@GOTO :eof
