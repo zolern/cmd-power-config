@@ -24,7 +24,11 @@
 @if /i [%1] == [v--help] goto shownverhelp
 
 @if /i [%1] == [vn] (
-    call n p npm
+	if [%2] == [] (
+		call n p npm
+		goto :eof
+	)
+	call n p npm@%2
 	goto :eof
 )
 
@@ -69,11 +73,7 @@
 )
 
 @if /i [%1] == [vu] (
-	echo:
-	echo  Node Version Manager for Windows
-	echo:
-	@nvm uninstall %2
-	GOTO :eof
+	goto :delnode
 )
 
 @if /i [%1] == [vs] (
@@ -85,11 +85,7 @@
 )
 
 @if /i [%1] == [vd] (
-	echo:
-	echo  Node Version Manager for Windows
-	echo:
-	@nvm uninstall %2
-	GOTO :eof
+	goto :delnode
 )
 
 @IF /i [%1] == [v] (
@@ -533,20 +529,16 @@
 @echo:
 @echo  Node Version Manager for Windows
 @if [%2] == [] (
-	@echo:
-	@echo   Alias is not set
-	@echo:
-	@echo   To check alias definition use:
-	@echo      n vg ^<alias^>
-	@goto :eof
+	goto :allnodever
+)
+@if /i [%2] == [a] (
+	goto :allnodever
+)
+@if /i [%2] == [all] (
+	goto :allnodever
 )
 @if [%2] == [^?] (
-	@echo:
-	@echo   All aliases in ^"%APPDATA%\nvm_aliases^":
-	@echo:
-	@dir "%APPDATA%\nvm_aliases" /b
-	@echo:
-	@goto :eof
+	goto :allnodever
 )
 @IF NOT exist "%APPDATA%\nvm_aliases\node_%2.set" goto :nvernotset
 @set _lver=
@@ -562,6 +554,19 @@
 
 :delnodever
 @echo     Please provide alias for %2
+@goto :eof
+
+:delnode
+@echo:
+@echo  Node Version Manager for Windows
+@echo:
+@IF exist "%APPDATA%\nvm_aliases\node_%2.set" (
+	echo    delete alias %2
+	echo:
+	del "%APPDATA%\nvm_aliases\node_%2.set" > NUL 2> NUL
+	goto :eof
+)
+@nvm uninstall %2
 @goto :eof
 
 :shownverhelp
@@ -582,6 +587,8 @@
 @echo:
 @echo   n vs ^/ nv s ^<ver^> ^<alias^>	define alias for version
 @echo   n vg ^/ nv g ^<alias^> 		show alias definition
+@echo   n vg ^/ nv g a   	list all aliases
+@echo   n vg ^/ nv g ^?   	list all aliases
 @echo:
 @goto :eof
 
@@ -666,3 +673,17 @@ GOTO :eof
 @call npm uninstall -g %2 %3 %4 %5 %6 %7 %8 %9
 @popd
 @GOTO :eof
+
+:allnodever
+@echo:
+@echo   All aliases in ^"%APPDATA%\nvm_aliases^":
+@echo:
+@dir "%APPDATA%\nvm_aliases" /b
+@echo:
+@if [%2] == [] (
+	echo:
+	echo   To show specific alias use:
+	echo      n vg ^<alias^>
+	echo:
+)
+@goto :eof
