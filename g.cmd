@@ -1,4 +1,5 @@
 @setlocal
+@echo off
 
 @IF [%1] == [^?] GOTO showhelp
 @IF [%1] == [^\^?] GOTO showhelp
@@ -30,10 +31,8 @@
 	GOTO :eof
 )
 
-@IF /i [%1] == [ri] (
-	@git rebase -i %2 %3 %4 %5 %6 %7 %8 %9
-	GOTO :eof
-)
+@IF /i [%1] == [ri]  goto git_irebase 
+
 
 @IF /i [%1] == [b] (
 	@if [%2] == [] @git branch -a
@@ -185,4 +184,18 @@
 @echo:
 @echo     git User email:
 @git config user.email
+@GOTO :eof
+
+:git_irebase
+@set A2=%2
+@set FL=%A2:~0,1%
+@set NL=%A2:~1%
+
+@if [%FL%] == [~] goto :git_ir_head
+
+@git rebase -i %2 %3 %4 %5 %6 %7 %8 %9
+@GOTO :eof
+
+:git_ir_head
+@git rebase -i HEAD~%NL% %3 %4 %5 %6 %7 %8 %9
 @GOTO :eof
