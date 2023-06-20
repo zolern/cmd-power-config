@@ -42,6 +42,7 @@ if exist nim-%1 (
 	@mklink /j now nim-%1 > NUL
 )
 :next
+@rd "%USERPROFILE%\nimcache" /s/q
 @nim -v
 goto :exit
 
@@ -50,11 +51,13 @@ goto :exit
 goto :exit
 
 :delete
-if exist %2 (
+@if exist %2 (
+	echo    remove %2
 	@rd %2 /s/q > NUL 2> NUL
 	goto :exit
 )
 if exist nim-%2 (
+	echo    remove nim-%2
 	@rd nim-%1 /s/q > NUL 2> NUL
 	goto :exit
 )
