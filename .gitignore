@@ -55,3 +55,6 @@ qac.cmd
 df.cmd
 bams.cmd
 
+# Claude local folders
+**/*superpowers/
+**/superpowers/
