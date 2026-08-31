@@ -11,6 +11,11 @@
 	@IF [%2] == [^\^?] GOTO shownverhelp
 	@IF [%2] == [^-^?] GOTO shownverhelp
 	@IF [%2] == [^/^?] GOTO shownverhelp
+	@if /i [%2] == [h] goto shownverhelp
+	@if /i [%2] == [-h] goto shownverhelp
+	@if /i [%2] == [^/h] goto shownverhelp
+	@if /i [%2] == [^\h] goto shownverhelp
+	@if /i [%2] == [--help] goto shownverhelp
 )
 
 @if /i [%1] == [v^?] goto shownverhelp
@@ -43,6 +48,11 @@
 )
 
 @if /i [%1] == [vni] (
+	call n in %2
+	goto :eof
+)
+
+@if /i [%1] == [vp] (
 	call n in %2
 	goto :eof
 )
@@ -137,6 +147,7 @@
 )
 
 @if /i [%1] == [r] (
+	@echo Start ^[%2^] at %time%
 	@npm run %2 %3 %4 %5 %6 %7 %8 %9
 	@goto :eof
 )
@@ -587,8 +598,8 @@
 @echo:
 @echo   n vs ^/ nv s ^<ver^> ^<alias^>	define alias for version
 @echo   n vg ^/ nv g ^<alias^> 		show alias definition
-@echo   n vg ^/ nv g a   	list all aliases
-@echo   n vg ^/ nv g ^?   	list all aliases
+@echo   n vg ^/ nv g a   		list all aliases
+@echo   n vg ^/ nv g ^?   		list all aliases
 @echo:
 @goto :eof
 
@@ -631,15 +642,15 @@
 @for /l %%a in (1,1,5) do @if "%_lver:~-1%"==" " @set _lver=%_lver:~0,-1%
 @echo NodeJS companion: restore npm from node v.%_lver%
 @echo:
-@IF NOT exist "%APPDATA%\nvm\v%_lver%" (
+@IF NOT exist "%NVM_HOME%\v%_lver%" (
 	echo   Could not found installed node %_lver%
 	goto :eof
 )
-@copy "%APPDATA%\nvm\v%_lver%\npm*.*" > NUL 2> NUL
-@copy "%APPDATA%\nvm\v%_lver%\npx*.*" > NUL 2> NUL
+@copy "%NVM_HOME%\v%_lver%\npm*.*" > NUL 2> NUL
+@copy "%NVM_HOME%\v%_lver%\npx*.*" > NUL 2> NUL
 @md node_modules > NUL 2> NUL
 @md node_modules\npm > NUL 2> NUL
-@xcopy "%APPDATA%\nvm\v%_lver%\node_modules\npm" node_modules\npm /s /e /h /q /k /r /y > NUL
+@xcopy "%NVM_HOME%\v%_lver%\node_modules\npm" node_modules\npm /s /e /h /q /k /r /y > NUL
 @set _lver=
 @popd
 @echo Now using restored npm, version:

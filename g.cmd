@@ -16,6 +16,12 @@
 	GOTO :eof
 )
 
+@IF /i [%1] == [i] (
+	@git init
+	@call g cs %2
+	GOTO :eof
+)
+
 @IF /i [%1] == [l] (
 	@git log
 	GOTO :eof
@@ -33,6 +39,17 @@
 
 @IF /i [%1] == [ri]  goto git_irebase 
 
+@IF /i [%1] == [a] (
+	@git add :/
+	@git commit --amend --no-edit
+	GOTO :eof
+)
+
+@IF /i [%1] == [ae] (
+	@git add :/
+	@git commit --amend
+	GOTO :eof
+)
 
 @IF /i [%1] == [b] (
 	@if [%2] == [] @git branch -a
@@ -86,15 +103,9 @@
 		@goto :showuserinfo
 	)
 
-	@if /i [%2] == [r] (
+	@if /i [%2] == [s] (
 		@git config --local user.name "Encho Topalov"
-		@git config --local user.email encho.topalov@refinitiv.com
-		@goto :showuserinfo
-	)
-
-	@if /i [%2] == [l] (
-		@git config --local user.name "Encho Topalov"
-		@git config --local user.email encho.topalov@lseg.com
+		@git config --local user.email encho.topalov@sap.com
 		@goto :showuserinfo
 	)
 
@@ -106,8 +117,7 @@
 	
 	@echo:
 	@echo g cs e    for EPAM's user settings
-	@echo g cs r    for Refinitiv's user settings
-	@echo g cs l    for LSEG's user settings
+	@echo g cs s    for SAP's user settings
 	@echo g cs gm   for private user settings
 	@GOTO :eof
 )
@@ -157,6 +167,9 @@
 @echo:
 @echo   g r 	        	git rebase
 @echo   g ri 	        	git rebase interactive
+@echo:
+@echo   g a 	        	git commit amend
+@echo   g ae 	        	git commit amend with editing
 @echo:
 @echo   g cg 	        	show user info
 @echo   g cs 	        	set user unfo

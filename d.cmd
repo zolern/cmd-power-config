@@ -134,7 +134,7 @@
 	@echo:
 	@echo   Definitions file: "%USERPROFILE%\.d.def"
 	@echo:
-	@start "Notepad" notepad++ "%USERPROFILE%\.d.def"
+	@start "Notepad" notepad "%USERPROFILE%\.d.def"
 	@SET _ddres=FOUND
 ) ELSE (
 	@IF [%_ddcmd%] == [SHOWALL] (
