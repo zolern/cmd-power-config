@@ -171,3 +171,75 @@ function n() {
 	fi
 }
 
+# Claude Code environment switcher (bash entry, mirrors cc.cmd)
+#   cc ollama (cc o)  - use Ollama models from ollama-claude.conf
+#   cc claude (cc c)  - use original Anthropic API (clears all conf variables)
+#   cc help   (cc h)  - show this help
+function cc() {
+    local mode="" conf="$(dirname "${BASH_SOURCE[0]}")/../ollama-claude.conf"
+    local arg
+    for arg in "$@"; do
+        case "$arg" in
+            --file:*) conf="${arg#--file:}" ;;
+            *) mode="$arg" ;;
+        esac
+    done
+    [ -z "$mode" ] && mode="help"
+
+    case "$mode" in
+        o|ollama)
+            if [ ! -f "$conf" ]; then
+                echo "cc: config file not found: $conf" >&2
+                return 1
+            fi
+            echo "Setting Claude Code to use Ollama models from \"$conf\""
+            local line key value
+            while IFS= read -r line || [ -n "$line" ]; do
+                line="${line%$'\r'}"
+                [ -z "$line" ] && continue
+                [ "${line:0:1}" = "#" ] && continue
+                key="${line%%=*}"
+                value="${line#*=}"
+                # empty value in conf = unset the variable in the session (mirrors cc.cmd `SET X=`)
+                if [ -n "$value" ]; then
+                    export "$key=$value"
+                else
+                    unset "$key"
+                fi
+                setx "$key" "$value" > /dev/null 2>&1
+            done < "$conf"
+            ;;
+        c|claude)
+            if [ ! -f "$conf" ]; then
+                echo "cc: config file not found: $conf" >&2
+                return 1
+            fi
+            echo "Setting Claude Code to use original Anthropic API, clearing variables from \"$conf\""
+            local line key
+            while IFS= read -r line || [ -n "$line" ]; do
+                line="${line%$'\r'}"
+                [ -z "$line" ] && continue
+                [ "${line:0:1}" = "#" ] && continue
+                key="${line%%=*}"
+                unset "$key"
+                reg delete "HKCU\\Environment" //v "$key" //f > /dev/null 2>&1
+            done < "$conf"
+            ;;
+        h|help|*)
+            cat <<'EOF'
+
+Claude Code environment switcher
+
+Usage: cc [options] <mode>
+
+  cc ollama  (cc o)   use Ollama models from ollama-claude.conf
+  cc claude  (cc c)   use the original Anthropic API - clears all conf variables
+  cc help    (cc h)   show this help
+
+Options:
+  --file:<path>   use a custom config file instead of ollama-claude.conf
+
+EOF
+            ;;
+    esac
+}
