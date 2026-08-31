@@ -1,0 +1,24 @@
+# none, visible or audible
+set bell-style none
+
+# Esc clears whole line (Ctrl-E - goto ent of line, Ctrl-U - delete to the begining of line)
+Escape: "\C-e\C-u"
+
+# Ignore Shift+Arrow keys (map to regular arrow movement)
+"\e[1;2C": forward-char
+"\e[1;2D": backward-char
+"\e[1;2A": previous-history
+"\e[1;2B": next-history
+"\e[1;5A": previous-history
+"\e[1;5B": next-history
+
+
+# Home и End клавиши
+"\e[1;2H": beginning-of-line
+"\e[1;2F": end-of-line
+"\e[1;5H": beginning-of-line
+"\e[1;5F": end-of-line
+"\e[5;2~": beginning-of-line
+"\e[6;2~": end-of-line
+"\e[5;5~": beginning-of-line
+"\e[6;5~": end-of-line
