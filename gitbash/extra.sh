@@ -22,15 +22,39 @@ alias nl='nl.cmd'
 
 # Visual Studio Code helpers
 #    use next only if "VS Code Insiders" is installed instead of "VS Code"
-alias icode='code-ins.cmd'
-alias icode.='icode .'
-alias ic='icode'
-alias ic.='icode .'
 alias code.='code .'
 alias c='code'
 alias c.='code .'
-alias vs='vs2022.bat'
 
+alias code_real='code.cmd'
+
+code() {
+  local target rest workspace_files workspace_path
+
+  # 1) ако първият аргумент е папка (вкл. .)
+  if [ $# -gt 0 ] && [ -d "$1" ]; then
+    target="$1"
+    shift
+    rest=( "$@" )
+
+    shopt -s nullglob
+    workspace_files=( "$target"/*.code-workspace )
+    shopt -u nullglob
+
+    # точно един workspace -> отваряме него
+    if [ ${#workspace_files[@]} -eq 1 ]; then
+      code_real "${workspace_files[0]}" "${rest[@]}"
+      return
+    fi
+
+    # иначе -> отваряме папката + останалите аргументи
+    code_real "$target" "${rest[@]}"
+    return
+  fi
+
+  # 2) ако първият аргумент не е папка -> оригиналното поведение
+  code_real "$@"
+}
 # ng (Angular) helpers
 #alias ng='npx ng'
 #alias ngtc='npx ng test --code-coverage'
@@ -67,15 +91,18 @@ alias vs='vs2022.bat'
 # }
 
 
-# OpenAI Codex helpers
-alias oc?='aiHelp "oc" "OpenAI Codex"'
-alias och='aiHelp "oc" "OpenAI Codex"'
-alias oc='codex'
-alias ocp='np @openai/codex && npm list -g @openai/codex && echo ""'
-alias oci='n ig @openai/codex && npm list -g @openai/codex && echo ""'
-alias ocu='n ug @openai/codex'
-alias ocl='npm list -g @openai/codex'
-alias ocv='npm list -g @openai/codex'
+## OpenAI Codex helpers
+#alias oc?='aiHelp "oc" "OpenAI Codex"'
+#alias och='aiHelp "oc" "OpenAI Codex"'
+#alias oc='codex'
+#alias ocp='np @openai/codex && npm list -g @openai/codex && echo ""'
+#alias oci='n ig @openai/codex && npm list -g @openai/codex && echo ""'
+#alias ocu='n ug @openai/codex'
+#alias ocl='npm list -g @openai/codex'
+#alias ocv='npm list -g @openai/codex'
+
+# Occama proxy helpers
+alias oci='d oc && ./build.sh && ./occama.exe install'
 
 # Google Gemini CLI helpers
 alias gc?='aiHelp "gc" "Google Gemini CLI"'
@@ -97,7 +124,7 @@ alias ccu='echo "Uninstalling of Claude Code is not supported"'
 alias ccl='claude --version'
 alias ccv='claude --version'
 
-alias aip='ccp'
+# alias aip='ccp'
 alias aii='cci'
 
 function aiHelp() {
