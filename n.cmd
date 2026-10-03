@@ -1,4 +1,5 @@
 @setlocal
+@call :nvmenv
 
 @IF [%1] == [^?] GOTO showhelp
 @IF [%1] == [^\^?] GOTO showhelp
@@ -69,7 +70,12 @@
 	echo:
 	echo  Node Version Manager for Windows
 	echo:
-	@nvm list available
+	@call :nvmver
+	@if defined NVM_V2 (
+		@nvm list releases %2
+	) else (
+		@nvm list available
+	)
 	GOTO :eof
 )
 
@@ -510,13 +516,15 @@
 @Set /P _lver=<"%APPDATA%\nvm_aliases\node_%2.set"
 @IF "%_lver%" == "" goto :normalnvmset
 @echo     use %2 as %_lver%
-@powershell.exe -Command "Start-Process nvm \"use %_lver%\" -Verb RunAs"
+::@powershell.exe -Command "Start-Process nvm \"use %_lver%\" -Verb RunAs"
+@nvm use %_lver%
 @
 @set _lver=
 @goto :eof
 
 :normalnvmset
-@powershell.exe -Command "Start-Process nvm \"use %2\" -Verb RunAs"
+::@powershell.exe -Command "Start-Process nvm \"use %2\" -Verb RunAs"
+@nvm use %2
 @if [%3] == [] goto :eof
 
 :setnodever
@@ -584,7 +592,8 @@
 @echo:
 @echo  Node Version Manager for Windows
 @echo:
-@echo   n va ^/ nv a	shows all node versions
+@echo   n va ^/ nv a	shows all available node versions
+@echo   n va ^<ver^>	shows available ^<ver^>.x.x versions (nvm 2.x)
 @echo   n vl ^/ nv l	shows installed node versions
 @echo:
 @echo   n vi ^/ nv i ^<ver^>   		install new node version
@@ -603,6 +612,58 @@
 @echo:
 @goto :eof
 
+:nvmenv
+@rem ==================================================================
+@rem Resolve the NVM paths so nothing else in this script depends on
+@rem the NVM for Windows version (1.x vs 2.x).
+@rem   NODE_VERSIONS_DIR : folder that holds the v<version> folders
+@rem   NODE_DIR          : folder of the currently active node.exe
+@rem Call as "call :nvmenv node" to also resolve NODE_DIR (runs node.exe).
+@rem ==================================================================
+@set "NODE_VERSIONS_DIR="
+@set "NODE_DIR="
+
+@rem --- NODE_VERSIONS_DIR : try NVM for Windows 2.x first ---
+@rem v2 keeps NVM_HOME pointed at its own home; versions live in \installs
+@IF defined NVM_HOME @IF exist "%NVM_HOME%\installs\" @set "NODE_VERSIONS_DIR=%NVM_HOME%\installs"
+@rem v2 registry setting (authoritative when present)
+@IF not defined NODE_VERSIONS_DIR (
+	@for /f "tokens=2,*" %%a in ('reg query "HKCU\Software\Author Software\Preferences\nvm" /v InstallRoot 2^>NUL ^| findstr /i "InstallRoot"') do @IF exist "%%b\" @set "NODE_VERSIONS_DIR=%%b"
+)
+@rem v2 default location
+@IF not defined NODE_VERSIONS_DIR @IF exist "%LOCALAPPDATA%\Author Software\nvm\installs\" @set "NODE_VERSIONS_DIR=%LOCALAPPDATA%\Author Software\nvm\installs"
+@rem NVM for Windows 1.x (legacy) - only when the folders really exist
+@IF not defined NODE_VERSIONS_DIR @IF defined NVM_HOME @IF exist "%NVM_HOME%\v*" @set "NODE_VERSIONS_DIR=%NVM_HOME%"
+@IF not defined NODE_VERSIONS_DIR @IF exist "%LOCALAPPDATA%\nvm\v*" @set "NODE_VERSIONS_DIR=%LOCALAPPDATA%\nvm"
+@IF not defined NODE_VERSIONS_DIR @IF exist "%APPDATA%\nvm\v*" @set "NODE_VERSIONS_DIR=%APPDATA%\nvm"
+
+@rem --- NODE_DIR (lazy) ---
+@IF /i not "%~1"=="node" @goto :eof
+
+@rem The running node.exe is the ground truth in every mode, so ask it
+@rem where it really lives. Do NOT use ".nodejs": with v2 in shim mode it
+@rem is a symlink to the shim folder (".shim"), not to the active version
+@rem folder, and the shims ignore the files copied next to them.
+@set "_nexe="
+@for /f "delims=" %%a in ('node -p process.execPath 2^>NUL') do @set "_nexe=%%a"
+@IF defined _nexe @for %%a in ("%_nexe%") do @set "NODE_DIR=%%~dpa"
+@set "NODE_DIR=%NODE_DIR:~0,-1%"
+@set "_nexe="
+@IF defined NODE_DIR @goto :eof
+
+@rem NVM for Windows 1.x fallback: the NVM_SYMLINK folder
+@IF defined NVM_SYMLINK @IF exist "%NVM_SYMLINK%\node.exe" @set "NODE_DIR=%NVM_SYMLINK%"
+@goto :eof
+
+:nvmver
+@rem Sets NVM_V2=1 when NVM for Windows 2.x is in use ("v2.0.1" vs "1.2.2").
+@set "NVM_V2="
+@set "_nvmmaj="
+@for /f "tokens=1 delims=." %%a in ('nvm version 2^>NUL') do @set "_nvmmaj=%%a"
+@IF defined _nvmmaj @IF not "%_nvmmaj%"=="%_nvmmaj:v=%" @set "NVM_V2=1"
+@set "_nvmmaj="
+@goto :eof
+
 :installnpm
 @echo:
 @rd "%tmp%\npm" /s/q > NUL 2> NUL
@@ -616,7 +677,14 @@
 	@echo:
 	@call npm install --prefix "%tmp%\npm" -g %2
 )
-@pushd "%NVM_SYMLINK%"
+@call :nvmenv node
+@if not defined NODE_DIR (
+	@echo:
+	@echo   Could not locate the active nodeJS folder
+	@echo   NODE_DIR is not set
+	@goto :eof
+)
+@pushd "%NODE_DIR%"
 @del npm*.* npx*.* > NUL 2> NUL
 @rd node_modules\npm /s/q > NUL 2> NUL
 @xcopy "%tmp%\npm\*.*" /s /e /h /q /k /r /y > NUL
@@ -629,7 +697,13 @@
 
 :restorenpm
 @echo:
-@pushd "%NVM_SYMLINK%"
+@call :nvmenv node
+@if not defined NODE_DIR (
+	@echo   Could not locate the active nodeJS folder
+	@echo   NODE_DIR is not set
+	@goto :eof
+)
+@pushd "%NODE_DIR%"
 @del npm*.* npx*.* > NUL 2> NUL
 @rd node_modules\npm /s/q > NUL 2> NUL
 @set _lver=%2
@@ -642,15 +716,20 @@
 @for /l %%a in (1,1,5) do @if "%_lver:~-1%"==" " @set _lver=%_lver:~0,-1%
 @echo NodeJS companion: restore npm from node v.%_lver%
 @echo:
-@IF NOT exist "%NVM_HOME%\v%_lver%" (
+@IF not defined NODE_VERSIONS_DIR (
+	echo   Could not locate the node versions folder
+	echo   NODE_VERSIONS_DIR is not set
+	goto :eof
+)
+@IF NOT exist "%NODE_VERSIONS_DIR%\v%_lver%" (
 	echo   Could not found installed node %_lver%
 	goto :eof
 )
-@copy "%NVM_HOME%\v%_lver%\npm*.*" > NUL 2> NUL
-@copy "%NVM_HOME%\v%_lver%\npx*.*" > NUL 2> NUL
+@copy "%NODE_VERSIONS_DIR%\v%_lver%\npm*.*" > NUL 2> NUL
+@copy "%NODE_VERSIONS_DIR%\v%_lver%\npx*.*" > NUL 2> NUL
 @md node_modules > NUL 2> NUL
 @md node_modules\npm > NUL 2> NUL
-@xcopy "%NVM_HOME%\v%_lver%\node_modules\npm" node_modules\npm /s /e /h /q /k /r /y > NUL
+@xcopy "%NODE_VERSIONS_DIR%\v%_lver%\node_modules\npm" node_modules\npm /s /e /h /q /k /r /y > NUL
 @set _lver=
 @popd
 @echo Now using restored npm, version:
